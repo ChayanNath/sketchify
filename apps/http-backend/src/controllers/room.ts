@@ -11,9 +11,22 @@ export const createRoom = async (req: Request, res: Response): Promise<any> => {
     }
     const safeParsedData = data.data;
     const userId = req.user;
-
-    if (!userId || safeParsedData.name) {
+    console.log(userId);
+    if (!userId || !safeParsedData.name) {
       res.status(400).json({ message: "Invalid request" });
+      return;
+    }
+
+    const existingRoom = await prismaClient.room.findUnique({
+      where: {
+        slug: safeParsedData.name,
+      },
+    });
+
+    if (existingRoom) {
+      res
+        .status(400)
+        .json({ message: "Room already exists! Provide a different name" });
       return;
     }
     const room = await prismaClient.room.create({
